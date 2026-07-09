@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "module": "es2020",
+    "target": "es2020",
+    "lib": ["es2021", "dom"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowJs": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "e2e/**/*.ts", "*.js"],
+  "exclude": ["node_modules", "src/**/bazel-*"]
+}

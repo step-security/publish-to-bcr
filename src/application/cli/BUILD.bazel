@@ -1,0 +1,96 @@
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("//bazel/jest:defs.bzl", "jest_test")
+load("//bazel/ts:defs.bzl", "ts_project")
+
+ts_project(
+    name = "cli",
+    srcs = [
+        "app.module.ts",
+        "create-entry-command.ts",
+        "main.ts",
+        "providers.ts",
+        "yargs.ts",
+    ],
+    allow_js = True,
+    source_map = True,
+    tsconfig = "//:tsconfig",
+    visibility = [
+        "//e2e/cli:__pkg__",
+        "//src/application/action:__pkg__",
+    ],
+    deps = [
+        "//:node_modules/@nestjs/common",
+        "//:node_modules/@nestjs/core",
+        "//:node_modules/@types/node",  # keep
+        "//:node_modules/@types/yargs",
+        "//:node_modules/chalk",
+        "//:node_modules/tree-node-cli",
+        "//:node_modules/yargs",
+        "//src/domain",
+        "//src/infrastructure",
+    ],
+)
+
+js_binary(
+    name = "bin",
+    data = [":cli"],
+    entry_point = "main.js",
+    visibility = ["//e2e/cli:__pkg__"],
+)
+
+esbuild(
+    name = "bundle",
+    srcs = [
+        ":cli",
+        "//src/application:cjs-shim",
+    ],
+    config = {
+        "target": "es2020",
+        "resolveExtensions": [".js"],
+        "platform": "node",
+        "format": "esm",
+        "inject": ["src/application/cjs-shim.js"],
+    },
+    entry_point = "main.js",
+    esbuild_log_level = "info",
+    external = [
+        "class-transformer",
+        "class-validator",
+        "encoding",
+        "@nestjs/websockets",
+        "@nestjs/microservices",
+        "@nestjs/platform-express",
+    ],
+    minify = False,
+    output = "index.js",
+    platform = "node",
+    sourcemap = "inline",
+    visibility = [
+        "//dist/cli:__pkg__",
+        "//e2e/cli:__pkg__",
+    ],
+)
+
+ts_project(
+    name = "cli_tests",
+    testonly = True,
+    srcs = ["yargs.spec.ts"],
+    allow_js = True,
+    source_map = True,
+    tsconfig = "//:tsconfig",
+    deps = [
+        ":cli",
+        "//:node_modules/@types/jest",  # keep
+        "//:node_modules/@types/yargs",
+        "//:node_modules/yargs",
+        "//src/domain",
+    ],
+)
+
+jest_test(
+    name = "test",
+    data = [
+        ":cli_tests",
+    ],
+)

@@ -1,0 +1,102 @@
+load("@aspect_gazelle_prebuilt//:def.bzl", "aspect_gazelle")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("//bazel/ts:defs.bzl", "ts_config", "ts_project")
+
+exports_files(
+    [
+        "babel.config.json",
+        "pnpm-lock.yaml",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
+npm_link_all_packages(name = "node_modules")
+
+ts_project(
+    name = "root",
+    srcs = [
+        "jest.setup.ts",
+    ],
+    allow_js = True,
+    source_map = True,
+    tsconfig = ":tsconfig",
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        ":node_modules/@jest/globals",
+        ":node_modules/jest-extended",
+        "//:node_modules/@types/jest",  # keep
+    ],
+)
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    visibility = [
+        "//e2e:__subpackages__",
+        "//src:__subpackages__",
+    ],
+)
+
+js_library(
+    name = "package_json",
+    srcs = ["package.json"],
+    visibility = ["//:__subpackages__"],
+)
+
+js_library(
+    name = "jest_config",
+    srcs = [
+        "jest.config.js",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:node_modules/babel-jest",
+        "//:root",
+    ],
+)
+
+buildifier(
+    name = "buildifier",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "fix",
+    mode = "fix",
+)
+
+buildifier(
+    name = "buildifier.check",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "warn",
+    mode = "diff",
+)
+
+aspect_gazelle(
+    languages = ["js"],
+    with_check = True,
+)
+
+alias(
+    name = "format",
+    actual = "//tools/format",
+)
+
+js_library(
+    name = "prettierrc",
+    srcs = [".prettierrc.cjs"],
+    visibility = ["//visibility:public"],
+)
+
+js_library(
+    name = "eslintrc",
+    srcs = ["eslint.config.mjs"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@babel",
+        "//:node_modules/@eslint/js",
+        "//:node_modules/eslint-plugin-simple-import-sort",
+        "//:node_modules/eslint-plugin-unused-imports",
+        "//:node_modules/globals",
+        "//:node_modules/typescript-eslint",
+    ],
+)

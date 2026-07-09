@@ -1,0 +1,212 @@
+# End-to-end tests for the Publish to BCR custom GitHub action
+name: action-e2e
+on:
+  workflow_call:
+jobs:
+  # Each job is an e2e test. Unfortunately a full workflow cannot be added as
+  # required status check on branch protection rules, so each test must be added
+  # as a required check: https://github.com/orgs/community/discussions/12395.
+  test-happy-path:
+    # Create a new module entry and test the content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: this
+      - name: Setup test fixture
+        run: this/e2e/action/setup-test-fixture.sh versioned versioned-1.0.0
+      - name: Create registry
+        run: |
+          mkdir -p bazel-central-registry/modules
+          cd bazel-central-registry
+          git init
+      - name: Create entry
+        id: create_entry
+        uses: ./this
+        with:
+          tag: v1.0.0
+          module-version: 1.0.0
+          github-repository: foobar/versioned
+          templates-dir: this/e2e/fixtures/versioned/.bcr
+          local-registry: bazel-central-registry
+      - name: Test entry content
+        run: this/e2e/action/test-happy-path-content.sh
+      - name: Test outputs
+        run: |
+          set -o errexit -o nounset -o pipefail -o xtrace
+
+          EXPECTED="versioned"
+          ACTUAL="${{ steps.create_entry.outputs.module-names }}"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "Expected output module-names to be '${EXPECTED}' but it was '${ACTUAL}'"
+            exit 1
+          fi
+
+          EXPECTED="versioned@1.0.0"
+          ACTUAL="${{ steps.create_entry.outputs.short-description }}"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "Expected output short-description to be '${EXPECTED}' but it was '${ACTUAL}'"
+            exit 1
+          fi
+  test-github-repository-default:
+    # Test that the `github-repository` input defaults to ${{ github.repository }}
+    # indirectly by checking the resulting subtituted source.json file in the entry.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: this
+      - name: Setup test fixture
+        run: this/e2e/action/setup-test-fixture.sh versioned publish-to-bcr-1.0.0
+      - name: Create registry
+        run: |
+          mkdir -p bazel-central-registry/modules
+          cd bazel-central-registry
+          git init
+      - name: Create entry
+        uses: ./this
+        with:
+          tag: v1.0.0
+          module-version: 1.0.0
+          templates-dir: this/e2e/fixtures/versioned/.bcr
+          local-registry: bazel-central-registry
+      - name: Test repository substitution
+        run: this/e2e/action/test-github-repository-default-substitution.sh
+  test-attestations:
+    # Test that attestations are created when `attest` is set to true
+    runs-on: ubuntu-latest
+    # Attestations require an OIDC id-token, which isn't granted to fork PRs, so
+    # skip these on forks. github.repository is always the base repo for
+    # pull_request events, so compare the PR head repo instead.
+    # https://github.com/actions/attest-build-provenance/issues/99
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: this
+      - name: Setup test fixture
+        run: this/e2e/action/setup-test-fixture.sh versioned versioned-1.0.0
+      - name: Create registry
+        run: |
+          mkdir -p bazel-central-registry/modules
+          cd bazel-central-registry
+          git init
+      - name: Create entry
+        uses: ./this
+        with:
+          attest: true
+          attestations-dest: attestations
+          tag: v1.0.0
+          module-version: 1.0.0
+          github-repository: foobar/versioned
+          templates-dir: this/e2e/fixtures/versioned/.bcr
+          local-registry: bazel-central-registry
+      - name: Test attestations exist
+        run: |
+          set -o errexit -o nounset -o pipefail -o xtrace
+
+          [ -f attestations/MODULE.bazel.intoto.jsonl ]
+          [ -f attestations/source.json.intoto.jsonl ]
+  test-multi-module:
+    # Tests a multi-module publish
+    runs-on: ubuntu-latest
+    # Attestations require an OIDC id-token, which isn't granted to fork PRs, so
+    # skip these on forks. github.repository is always the base repo for
+    # pull_request events, so compare the PR head repo instead.
+    # https://github.com/actions/attest-build-provenance/issues/99
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: this
+      - name: Setup test fixture
+        run: this/e2e/action/setup-test-fixture.sh multi-module multi-module-1.0.0
+      - name: Create registry
+        run: |
+          mkdir -p bazel-central-registry/modules
+          cd bazel-central-registry
+          git init
+      - name: Create entry
+        id: create_entry
+        uses: ./this
+        with:
+          attest: true
+          attestations-dest: attestations
+          tag: v1.0.0
+          module-version: 1.0.0
+          github-repository: testorg/multi-module
+          templates-dir: this/e2e/fixtures/multi-module/.bcr
+          local-registry: bazel-central-registry
+      # Test that attestation files are given a prefixed name when multiple modules are published
+      - name: Test attestations exist
+        run: |-
+          set -o errexit -o nounset -o pipefail -o xtrace
+
+          [ -f attestations/module.MODULE.bazel.intoto.jsonl ]
+          [ -f attestations/module.source.json.intoto.jsonl ]
+          [ -f attestations/submodule.MODULE.bazel.intoto.jsonl ]
+          [ -f attestations/submodule.source.json.intoto.jsonl ]
+      - name: Test outputs
+        run: |-
+          set -o errexit -o nounset -o pipefail -o xtrace
+
+          EXPECTED="module,submodule"
+          ACTUAL="${{ steps.create_entry.outputs.module-names }}"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "Expected output module-names to be '${EXPECTED}' but it was '${ACTUAL}'"
+            exit 1
+          fi
+
+          EXPECTED="{module,submodule}@1.0.0"
+          ACTUAL="${{ steps.create_entry.outputs.short-description }}"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "Expected output short-description to be '${EXPECTED}' but it was '${ACTUAL}'"
+            exit 1
+          fi
+  test-override-module-roots:
+    # tests overriding module roots to publish one module from a multi-module repo 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: this
+      - name: Setup test fixture
+        run: this/e2e/action/setup-test-fixture.sh multi-module multi-module-1.0.0
+      - name: Create registry
+        run: |
+          mkdir -p bazel-central-registry/modules
+          cd bazel-central-registry
+          git init
+      - name: Create entry
+        id: create_entry
+        uses: ./this
+        with:
+          tag: v1.0.0
+          module-roots: submodule # override to only publish submodule
+          module-version: 1.0.0
+          github-repository: testorg/multi-module
+          templates-dir: this/e2e/fixtures/multi-module/.bcr
+          local-registry: bazel-central-registry
+      - name: Test outputs
+        run: |-
+          set -o errexit -o nounset -o pipefail -o xtrace
+
+          EXPECTED="submodule"
+          ACTUAL="${{ steps.create_entry.outputs.module-names }}"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "expected output module-names to be '${EXPECTED}' but it was '${ACTUAL}'"
+            exit 1
+          fi
+
+          EXPECTED="submodule@1.0.0"
+          ACTUAL="${{ steps.create_entry.outputs.short-description }}"
+          if [[ "${ACTUAL}" != "${EXPECTED}" ]]; then
+            echo "expected output short-description to be '${EXPECTED}' but it was '${ACTUAL}'"
+            exit 1
+          fi

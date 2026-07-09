@@ -1,0 +1,11 @@
+load("@diff.bzl", "diff")
+
+diff(
+    name = "action",
+    srcs = [
+        "index.js",
+        "//src/application/action:bundle",
+    ],
+    source_patch_output_groups = ["autopatch"],
+    validate = 1,
+)

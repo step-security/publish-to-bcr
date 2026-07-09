@@ -1,1 +1,191 @@
-# publish-to-bcr
+[![StepSecurity Maintained Action](https://raw.githubusercontent.com/step-security/maintained-actions-assets/main/assets/maintained-action-banner.png)](https://docs.stepsecurity.io/actions/stepsecurity-maintained-actions)
+
+# Publish to BCR
+
+Release automation that mirrors releases of your Bazel ruleset to the [Bazel Central Registry](https://github.com/bazelbuild/bazel-central-registry).
+
+* [Prerequisites](#prerequisites)
+* [Setup](#setup)
+* [Publishing multiple modules in the same repo](#publishing-multiple-modules-in-the-same-repo)
+* [Including patches](#including-patches)
+* [Attestations](#attestations)
+* [Immutable releases](#immutable-releases)
+* [LEGACY GitHub app](#legacy-github-app)
+
+## Prerequisites
+
+Prepare your ruleset for bzlmod by following the [Bzlmod User Guide](https://bazel.build/docs/bzlmod).
+
+Then, include these [template files](./templates) in your ruleset repository.
+
+## Setup
+
+Create a GitHub Actions workflow in your ruleset repository by creating a file, typically named `.github/workflows/publish.yaml`.
+
+This repository provides a reusable workflow that contains all the boilerplate.
+See complete documentation in the [reusable workflow file](./.github/workflows/publish.yaml).
+
+### 1. Decide how your workflow will be invoked
+
+Use an `on` block, and provide at least the `tag_name` as an input.
+
+For example, if you have a release automation using GitHub Actions, you might call this publish workflow upon successful completion.
+A recommended setup for release automation, including generating attestations to prove the provenance of release artifacts, may be found at
+https://github.com/bazel-contrib/.github/blob/master/.github/workflows/
+
+As another example, you might use `workflow_dispatch` to manually run the publish workflow from the GitHub web UI or the CLI
+([documentation](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow))
+
+It's also useful to permit both of these, for example:
+
+```yaml
+on:
+  # Run the publish workflow after a successful release
+  # Will be triggered from the release.yaml workflow
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+  # In case of problems, let release engineers retry by manually dispatching
+  # the workflow from the GitHub UI
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+```
+
+### 2. Reference the reusable workflow in your `publish` job
+
+```yaml
+jobs:
+  publish:
+    uses: step-security/publish-to-bcr/.github/workflows/publish.yaml@v1
+    with:
+      tag_name: ${{ inputs.tag_name }}
+      # GitHub repository which is a fork of the upstream where the Pull Request will be opened.
+      registry_fork: my-org/bazel-central-registry
+      # see note on Attestation Support
+      attest: true
+    permissions:
+      contents: write
+      # Necessary if attest:true
+      id-token: write
+      # Necessary if attest:true
+      attestations: write
+    secrets:
+      # Necessary to push to the BCR fork, and to open a pull request against a registry
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
+```
+
+### 3. Create a Personal Access Token
+
+Create a "Classic" PAT, see [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
+
+It requires "workflow" and "repo" permissions. The PAT is used to push a branch to the `registry_fork` and to open the pull request.
+
+> [!NOTE]
+> Fine-grained PATs are not _fully_ supported because they cannot open pull requests against public
+> repositories: https://github.com/github/roadmap/issues/600. However, a fine-grained PAT can be using in combination with setting `open_pull_request` to `false` to run a step outputting a URL to create
+> the pull request manually. The fine-grained PAT should be created for the owner of the registry fork.
+
+> [!TIP]
+> If the ruleset belongs to an organization, it may be desirable to create a new "machine" user account with a classic PAT to avoid storing an individual's PAT as a secret.
+> For example, the [bazel-contrib-bot](https://github.com/bazel-contrib-bot) user opens pull requests for rulesets in bazel-contrib.
+> Create the machine user, invite them to the org, and create the PAT as you would for a human user.
+
+Save the token as `BCR_PUBLISH_TOKEN` in your repository or org, under _Settings > Secrets and variables > Actions_.
+Alternatively, create a GitHub Actions deployment [environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments) and save the secret there, then set the name of the environment
+in the `environment` input of the reusable workflow.
+
+### 4. Consider whether to open the PR as a draft
+
+By default, pull requests are opened in draft mode. This is ideal for ruleset owners who host their repository in their personal account and use a personal access token. The BCR allows authors to click "Ready for review" as a way to approve the entry for merging, since GitHub does not allow an author to review their own pull request.
+
+When using a bot/machine user PAT to open the pull request, set `draft: false` on the reusable workflow. Otherwise, non-bot users will be unable to mark it as ready for review. Maintainers listed in `metadata.json` are allowed to approve the pull request.
+
+See an example of [release](https://github.com/aspect-build/rules_lint/blob/main/.github/workflows/release.yml) and [publish](https://github.com/aspect-build/rules_lint/blob/main/.github/workflows/publish.yaml) workflows working together in rules_lint.
+Example workflows are also included in the Bazel [rules template](https://github.com/bazel-contrib/rules-template/tree/main/.github/workflows).
+
+## Publishing multiple modules in the same repo
+
+Multiple modules that are versioned together in the same git repository can be published by configuring [`moduleRoots`](./templates/README.md#optional-configyml).
+
+When modules are versioned separately on different tags, pass in `module_roots` to the reusable publish workflow to override which module(s) get published. Ensure that `tag_prefix` is correctly set to match the tagging scheme for the release (defaults to "v").
+
+```yaml
+jobs:
+  publish-foobar:
+    if: startsWith(inputs.tag_name, "foobar-v")
+    uses: step-security/publish-to-bcr/.github/workflows/publish.yaml@v1
+    with:
+      ...
+      tag_prefix: foobar-v  # e.g., for tag foobar-v1.2.3
+      module_roots: | # only publish modules rooted at ./foo and ./bar
+        foo
+        bar
+```
+
+Some ways publish to different modules on different releases:
+1. Declare separate publish jobs that are triggered conditionally on the release tag (as above).
+1. Use a single publish job but dynamically set the value of `tag_prefix` and `module_roots` using GitHub Actions expressions.
+1. Use entirely separate release publish workflows for different tag patterns.
+
+## Including patches
+
+Include patches in the BCR entry by adding them under `.bcr/patches` in your ruleset repository. All patches must have the `.patch` extension and be in the `-p1` format.
+
+For example, a patch in `.bcr/patches/remove_dev_deps.patch` will be included in the entry's pull request and will be referenced in the
+corresponding `source.json` file:
+
+```json
+{
+    ...
+    "patch_strip": 0,
+    "patches": {
+        "remove_dev_deps.patch": "sha256-DXvBJbXZWf3hITOIjeJbgER6UOXIB6ogpgullT+oP4k="
+    }
+}
+```
+
+To patch in a submodule, add the patch to a patches folder under the submodule path `.bcr/[sub/module]/patches` where sub/module is the path to the WORKSPACE folder relative to the repository root.
+
+## Attestations
+
+BCR supports the upload of attestations with your build. This workflow will produce them by default but BCR requires that you also release your ruleset using the [bazel-contrib release_ruleset](https://github.com/bazel-contrib/.github/blob/master/.github/workflows/release_ruleset.yaml) workflow. Source archive attestations produced in other ways will currently be rejected by BCR. If you are not using the release_ruleset, you will want
+to set `attest: false`.
+
+## Immutable releases
+
+The reusable publish workflow is compatible with [immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases).
+
+If using attestations (`attest: true`, the default), the release must remain as a draft during the publish workflow run. Set `draft: true` on the [reusable release workflow](https://github.com/bazel-contrib/.github/blob/master/.github/workflows/release_ruleset.yaml) (required for attestations) that runs before publish. During the publish workflow, attestations will be uploaded to the latest release draft for the tag.
+
+The workflow will _not_ finalize the release—it must be published manually or by adding an additional job to your workflow such as:
+
+```yaml
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: publish
+    steps:
+      - run: gh release edit "${{ inputs.tag_name }}" --draft=false --repo "${{ github.repository }}"
+```
+
+The publish workflow downloads artifacts produced by the reusable release workflow by default. If the release and publish jobs do _not_ run in the same workflow run, set `release_artifacts_run_id` to the ID of the run where the release ran (see workflow [docs](./.github/workflows/publish.yaml)).
+
+## LEGACY GitHub App
+
+:warning: The GitHub app will be discontinued after June 30, 2026. Please migrate to the GitHub Actions [reusable workflow](https://github.com/step-security/publish-to-bcr?tab=readme-ov-file#setup) before then.
+
+Prior to the introduction of the attestation feature in March 2025, this functionality was provided by a GitHub App.
+
+This documentation remains for users of that method to reference before upgrading.
+
+[Configure](https://github.com/apps/publish-to-bcr) the app for two repositories:
+
+   - Your ruleset repository.
+   - A fork of [bazelbuild/bazel-central-registry](https://github.com/bazelbuild/bazel-central-registry). The fork can be in the same GitHub account as your ruleset _or_ in the release author's personal account. If you use release automation and the release author is the github-actions bot, then the fork must
+     be in ruleset's account unless you [override the releaser](./templates/README.md#optional-configyml).
+
+   _Note: Authors of rulesets under the `bazelbuild` org should add the app to their personal fork of `bazelbuild/bazel-central-registry`._
