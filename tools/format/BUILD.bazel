@@ -23,5 +23,4 @@ format_multirun(
     javascript = ":prettier",
     starlark = "@buildifier_prebuilt//:buildifier",
     terraform = "@aspect_rules_lint//format:terraform",
-    yaml = "@aspect_rules_lint//format:yamlfmt",
 )

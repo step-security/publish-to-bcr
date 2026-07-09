@@ -839,7 +839,6 @@ describe('e2e tests', () => {
   });
 
   test('commits are attributed to the publish-to-bcr bot user when the github-actions[bot] is the releaser', async () => {
-
     const repo = Fixture.Versioned;
     const tag = 'v1.0.0';
     await setupLocalRemoteRulesetRepo(repo, tag, {
