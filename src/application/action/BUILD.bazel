@@ -15,6 +15,7 @@ ts_project(
         "//:node_modules/@actions/core",
         "//:node_modules/@actions/exec",
         "//:node_modules/@types/node",
+        "//:node_modules/axios",
         "//src/application/cli",
     ],
 )
