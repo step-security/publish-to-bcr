@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: step-security/setup-bazel@v0
+      - uses: ./
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: step-security/setup-bazel@v0
+      - uses: ./
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: step-security/setup-bazel@v0
+      - uses: ./
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
@@ -66,7 +66,7 @@ jobs:
           # pushed to and their head branch doesn't exist in this repo, so fall
           # back to the default checkout (the merge ref) for them.
           ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || '' }}
-      - uses: step-security/setup-bazel@v0
+      - uses: ./
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
