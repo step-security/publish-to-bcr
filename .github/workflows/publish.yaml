@@ -346,7 +346,7 @@ jobs:
 
     - name: Create final entry
       id: create-final-entry
-      uses: step-security/actions/publish-to-bcr@release
+      uses: step-security/publish-to-bcr@release
       with:
         tag: ${{ inputs.tag_name }}
         module-version: ${{ env.VERSION }}
