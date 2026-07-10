@@ -5,7 +5,7 @@
   "main": "./application/webhook/index.js",
   "engines": {
     "node": "^24",
-    "pnpm": "^8"
+    "pnpm": "^11"
   },
   "scripts": {
     "build": "bazel build //...",
@@ -82,35 +82,5 @@
     "prettier": "3.7.4",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.15.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [],
-    "packageExtensions": {
-      "@actions/github": {
-        "dependencies": {
-          "undici": "*"
-        }
-      },
-      "@google-cloud/secret-manager": {
-        "dependencies": {
-          "long": "5.2.3"
-        }
-      },
-      "debug": {
-        "dependencies": {
-          "supports-color": "*"
-        }
-      },
-      "follow-redirects": {
-        "dependencies": {
-          "debug": "*"
-        }
-      },
-      "node-fetch": {
-        "dependencies": {
-          "encoding": "*"
-        }
-      }
-    }
   }
 }

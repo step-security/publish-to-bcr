@@ -1,0 +1,38 @@
+# Disabling pnpm hoisting is recommended on projects using rules_js so that
+# pnpm outside of Bazel lays out a node_modules tree similar to what rules_js
+# lays out under Bazel (without a hidden node_modules/.pnpm/node_modules).
+# See https://pnpm.io/npmrc#hoist
+hoist: false
+
+# Pre and post scripts run by default in pnpm v11+.
+enablePrePostScripts: true
+
+# Only install packages that have been published for at least 3 days,
+# reducing the risk of a supply-chain attack via a just-published malicious version.
+minReleaseAge: "3 days"
+
+packageExtensions:
+  "@actions/github":
+    dependencies:
+      undici: "*"
+  "@google-cloud/secret-manager":
+    dependencies:
+      long: 5.2.3
+  debug:
+    dependencies:
+      supports-color: "*"
+  follow-redirects:
+    dependencies:
+      debug: "*"
+  node-fetch:
+    dependencies:
+      encoding: "*"
+
+# Required by aspect_rules_js (pnpm v10+ reads this from pnpm-workspace.yaml).
+# Empty list means no packages are allowed to run lifecycle hooks under Bazel.
+onlyBuiltDependencies: []
+
+allowBuilds:
+  '@nestjs/core': false
+  fast-folder-size: false
+  protobufjs: false
