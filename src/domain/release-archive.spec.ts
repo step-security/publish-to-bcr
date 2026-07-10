@@ -5,7 +5,7 @@ import path from 'node:path';
 import { parse as parseUrl } from 'node:url';
 
 import { mocked } from 'jest-mock';
-import tar from 'tar';
+import * as tar from 'tar';
 
 import { decompress as decompressZst } from '../infrastructure/zstdec/zstdec';
 import { fakeModuleFile } from '../test/mock-template-files';

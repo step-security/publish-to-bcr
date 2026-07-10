@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import stream from 'node:stream';
 
 import extractZip from 'extract-zip';
-import tar from 'tar';
+import * as tar from 'tar';
 
 import { decompress as decompressXz } from '../infrastructure/xzdec/xzdec.js';
 import { decompress as decompressZst } from '../infrastructure/zstdec/zstdec.js';
@@ -131,7 +132,7 @@ export class ReleaseArchive {
       const reader = fs.createReadStream(this.artifact.diskPath);
       const writer = tar.x({
         cwd: extractDir,
-      });
+      }) as unknown as stream.Writable;
       await decompressXz(reader, writer);
       await new Promise((resolve) => {
         writer.on('finish', resolve);
@@ -145,7 +146,7 @@ export class ReleaseArchive {
       const reader = fs.createReadStream(this.artifact.diskPath);
       const writer = tar.x({
         cwd: extractDir,
-      });
+      }) as unknown as stream.Writable;
       await decompressZst(reader, writer);
       await new Promise((resolve) => {
         writer.on('finish', resolve);
