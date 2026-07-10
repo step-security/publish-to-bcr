@@ -37,7 +37,8 @@ export const handleGithubWebhookEvent: HttpFunction = async (
   await webhooks.verifyAndReceive({
     id: request.headers['x-github-delivery'] as string,
     name: request.headers['x-github-event'] as any,
-    payload: request.body,
+    payload:
+      (request as any).rawBody?.toString() ?? JSON.stringify(request.body),
     signature: request.headers['x-hub-signature-256'] as string,
   });
 
