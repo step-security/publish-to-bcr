@@ -9,7 +9,7 @@ enablePrePostScripts: true
 
 # Only install packages that have been published for at least 3 days,
 # reducing the risk of a supply-chain attack via a just-published malicious version.
-minReleaseAge: "3 days"
+minimumReleaseAge: 4320
 
 packageExtensions:
   "@actions/github":
