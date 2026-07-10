@@ -1,0 +1,64 @@
+name: 'Publish to BCR'
+description: 'Create a new module version entry in a Bazel registry'
+inputs:
+  attest:
+    description: 'Whether to generate attestations for files created by Publish to BCR.'
+    required: false
+    default: false
+  attestations-dest:
+    description: 'Directory to output attestations to. Attestations are not included in the entry.'
+    required: false
+    default: ''
+  gh-token:
+    description: 'Token for persisting attestations to the repo. This must be a token with id-token and attestation write permissions.'
+    required: false
+    default: ${{ github.token }}
+  github-repository:
+    description: 'GitHub repository for the module being published. Used to substititue the OWNER and REPO vars into the source template. Defaults to the repository this action runs in.'
+    required: false
+    default: ${{ github.repository }}
+  local-artifact-path:
+    description: 'A newline separated list of local file paths to scan for artifacts declared in source.json and attestations.json instead of downloading them to compute an integrity checksum.'
+    required: false
+    default: ''
+  local-registry:
+    description: 'Path to a locally checked out registry where the entry files will be created.'
+    required: true
+  metadata-template:
+    description: 'Content of the metadata template. An alternative to supplying a metadata.template.json file in the templates dir.'
+    required: false
+    default: ''
+  module-roots:
+    description: 'A newline separated list of relative paths of modules to publish. Overrides the content of moduleRoots in the configuration file.'
+    required: false
+  module-version:
+    description: 'The module version to publish to the registry.'
+    required: true
+  patch:
+    description: 'Patch content to apply to the release archive. An alternative to supplying a patches folder in the templates dir. The GitHub action is limited to a single patch input so all patches should be merged into one.'
+    required: false
+    default: ''
+  presubmit:
+    description: 'Content of the presubmit. An alternative to supplying a presubmit.yml file in the templates dir.'
+    required: false
+    default: ''
+  source-template:
+    description: 'Content of the source template. An alternative to supplying a source.template.json file in the templates dir.'
+    required: false
+    default: ''
+  tag:
+    description: "Tag of the the module repository's release. Used for substitution in the source template."
+    required: false
+    default: ''
+  templates-dir:
+    description: 'Directory containing BCR release template files: metadata.template.json, source.template.json, presubmit.yaml, patches/. Equivalent to the .bcr directory required by the legacy GitHub app.'
+    required: false
+    default: ''
+outputs:
+  module-names:
+    description: Name(s) of the module(s) from MODULE.bazel, comma-separated
+  short-description:
+    description: A short, single-line description of the operation, e.g. "Publish foo_module@1.2.3".
+runs:
+  using: 'node24'
+  main: 'dist/action/index.js'

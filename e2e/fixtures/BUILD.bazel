@@ -1,0 +1,100 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
+load(":fixture.bzl", "fixture_archive")
+
+fixture_archive(
+    name = "attestations",
+    archive = "tar.gz",
+    prefix = "attestations-1.0.0",
+)
+
+fixture_archive(
+    name = "empty-prefix",
+    archive = "tar.gz",
+    prefix = None,
+)
+
+fixture_archive(
+    name = "fixed-releaser",
+    archive = "tar.gz",
+    prefix = "fixed-releaser-1.0.0",
+)
+
+fixture_archive(
+    name = "missing-module-name",
+    archive = "tar.gz",
+    prefix = "missing-module-name-1.0.0",
+)
+
+fixture_archive(
+    name = "multi-module",
+    archive = "tar.gz",
+    prefix = "multi-module-1.0.0",
+)
+
+fixture_archive(
+    name = "multi-module_invalid_prefix",
+    archive = "tar.gz",
+    fixture = "multi-module",
+    prefix = "invalid-prefix",
+)
+
+fixture_archive(
+    name = "no-github-id",
+    archive = "tar.gz",
+    prefix = "no-github-id-1.0.0",
+)
+
+fixture_archive(
+    name = "no-prefix",
+    archive = "tar.gz",
+    prefix = None,
+)
+
+fixture_archive(
+    name = "tarball",
+    archive = "tar.gz",
+    prefix = "tarball-1.0.0",
+)
+
+fixture_archive(
+    name = "tarball-xz",
+    archive = "tar.xz",
+    prefix = "tarball-xz-1.0.0",
+)
+
+fixture_archive(
+    name = "unversioned",
+    archive = "tar.gz",
+    prefix = "unversioned-1.0.0",
+)
+
+fixture_archive(
+    name = "versioned",
+    archive = "tar.gz",
+    prefix = "versioned-1.0.0",
+)
+
+fixture_archive(
+    name = "versioned_invalid_prefix",
+    archive = "tar.gz",
+    fixture = "versioned",
+    prefix = "invalid-prefix",
+)
+
+fixture_archive(
+    name = "zero-versioned",
+    archive = "tar.gz",
+    prefix = "zero-versioned-1.0.0",
+)
+
+fixture_archive(
+    name = "zip",
+    archive = "zip",
+    prefix = "zip-1.0.0",
+)
+
+copy_to_bin(
+    name = "fixtures",
+    srcs = glob(["**/*"]),
+    visibility = ["//e2e:__subpackages__"],
+)

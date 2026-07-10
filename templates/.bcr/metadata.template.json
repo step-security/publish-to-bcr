@@ -1,0 +1,15 @@
+{
+  "homepage": "INSERT_YOUR_HOMEPAGE",
+  "maintainers": [
+    {
+      "name": "INSERT_YOUR_NAME",
+      "email": "INSERT_YOUR_EMAIL",
+      "github": "INSERT_YOUR_GITHUB_USERNAME"
+    }
+  ],
+  "repository": [
+    "github:OWNER/REPO"
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}

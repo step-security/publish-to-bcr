@@ -1,0 +1,43 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("//bazel/ts:defs.bzl", "ts_project")
+load(":wasm.bzl", "wasm_binary")
+
+cc_binary(
+    name = "xzdec_cc",
+    srcs = ["xzdec.c"],
+    linkopts = [
+        "-nostdlib",
+        "-lc",
+        "-Wl,--no-entry",
+    ],
+    tags = ["manual"],
+    deps = ["@xz//:lzma"],
+)
+
+wasm_binary(
+    name = "xzdec_wasm",
+    out = "xzdec.wasm",
+    lib = ":xzdec_cc",
+)
+
+genrule(
+    name = "xzdec_wasm_gz",
+    srcs = [":xzdec_wasm"],
+    outs = ["xzdec.wasm.gz"],
+    cmd = "cat $< | gzip -9 -k -n > $@",
+    visibility = ["//src:__pkg__"],
+)
+
+ts_project(
+    name = "xzdec",
+    srcs = ["xzdec.ts"],
+    allow_js = True,
+    data = [":xzdec_wasm_gz"],
+    source_map = True,
+    tsconfig = "//:tsconfig",
+    visibility = [
+        "//src:__pkg__",
+        "//src/domain:__subpackages__",
+    ],
+    deps = ["//:node_modules/@types/node"],
+)

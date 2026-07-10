@@ -1,0 +1,82 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  # Cancel previous actions from the same PR or branch except 'main' branch.
+  # See https://docs.github.com/en/actions/using-jobs/using-concurrency and https://docs.github.com/en/actions/learn-github-actions/contexts for more info.
+  group: concurrency-group::${{ github.workflow }}::${{ github.event.pull_request.number > 0 && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}${{ github.ref_name == 'main' && format('::{0}', github.run_id) || ''}}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+jobs:
+  buildifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: step-security/setup-bazel@v0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
+          # Don't save cache on pull requests to avoid polluting it
+          cache-save: ${{ github.event_name != 'pull_request' }}
+      - run: bazel run //tools/format:format.check --config=ci
+  gazelle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: step-security/setup-bazel@v0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
+          # Don't save cache on pull requests to avoid polluting it
+          cache-save: ${{ github.event_name != 'pull_request' }}
+      - run: bazel run //:gazelle.check --config=ci
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: step-security/setup-bazel@v0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
+          # Don't save cache on pull requests to avoid polluting it
+          cache-save: ${{ github.event_name != 'pull_request' }}
+      - run: bazel run //tools/format:format.check --config=ci
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Check out the PR head branch (rather than the merge commit) so that
+          # auto-applied patches can be pushed back to it. Fork PRs can't be
+          # pushed to and their head branch doesn't exist in this repo, so fall
+          # back to the default checkout (the merge ref) for them.
+          ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || '' }}
+      - uses: step-security/setup-bazel@v0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
+          # Don't save cache on pull requests to avoid polluting it
+          cache-save: ${{ github.event_name != 'pull_request' }}
+      - run: bazel test //... --config=ci
+
+  action-e2e:
+    uses: ./.github/workflows/action-e2e.yaml
