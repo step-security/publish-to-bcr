@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@actions/attest": "^3.0.0",
-    "@actions/core": "^2.0.1",
+    "@actions/core": "^3.0.1",
     "@actions/exec": "^2.0.0",
     "@google-cloud/functions-framework": "^3.1.2",
     "@google-cloud/secret-manager": "^5.0.1",
