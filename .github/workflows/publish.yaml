@@ -179,8 +179,13 @@ jobs:
       REGISTRY_FORK: ${{ inputs.registry_fork }}
       TAG_NAME: ${{ inputs.tag_name }}
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+      with:
+        egress-policy: audit
+
     - name: Checkout the module repository
-      uses: actions/checkout@v7
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         ref: ${{ inputs.templates_ref || inputs.tag_name }}
         repository: ${{ inputs.repository }}
@@ -188,7 +193,7 @@ jobs:
         persist-credentials: false
 
     - name: Checkout BCR
-      uses: actions/checkout@v7
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         repository: ${{ inputs.registry }}
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -254,7 +259,7 @@ jobs:
       # However all the context is the caller repo (like this workflow is inlined)
       # https://github.com/orgs/community/discussions/18602
       # https://github.com/orgs/community/discussions/63863
-      uses: step-security/publish-to-bcr@release
+      uses: step-security/publish-to-bcr@6aa245c5c1f1c6a76067580d65148a2db9916274 # release
       with:
         attest: true
         attestations-dest: attestations
@@ -270,7 +275,7 @@ jobs:
     # were already uploaded on a previous run.
     - name: Upload attestations to release
       if: ${{ inputs.attest }}
-      uses: step-security/action-gh-release@v3
+      uses: step-security/action-gh-release@d2093dbdaf0c6507874908247e14bbc4dee6a72d # v3.0.1
       with:
         files: attestations/*
         repository: ${{ inputs.repository }}
@@ -346,7 +351,7 @@ jobs:
 
     - name: Create final entry
       id: create-final-entry
-      uses: step-security/publish-to-bcr@release
+      uses: step-security/publish-to-bcr@6aa245c5c1f1c6a76067580d65148a2db9916274 # release
       with:
         tag: ${{ inputs.tag_name }}
         module-version: ${{ env.VERSION }}

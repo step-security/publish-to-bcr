@@ -14,8 +14,13 @@ jobs:
   buildifier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: step-security/setup-bazel@v0
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: step-security/setup-bazel@f1ca5605b532c98691819ac4a017f047578187cd # v0.19.0
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
@@ -29,8 +34,13 @@ jobs:
   gazelle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: step-security/setup-bazel@v0
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: step-security/setup-bazel@f1ca5605b532c98691819ac4a017f047578187cd # v0.19.0
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
@@ -44,8 +54,13 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: step-security/setup-bazel@v0
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: step-security/setup-bazel@f1ca5605b532c98691819ac4a017f047578187cd # v0.19.0
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
@@ -59,14 +74,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # Check out the PR head branch (rather than the merge commit) so that
           # auto-applied patches can be pushed back to it. Fork PRs can't be
           # pushed to and their head branch doesn't exist in this repo, so fall
           # back to the default checkout (the merge ref) for them.
           ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || '' }}
-      - uses: step-security/setup-bazel@v0
+      - uses: step-security/setup-bazel@f1ca5605b532c98691819ac4a017f047578187cd # v0.19.0
         with:
           # Avoid downloading Bazel every time.
           bazelisk-cache: true
