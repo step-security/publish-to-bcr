@@ -10,7 +10,6 @@ Release automation that mirrors releases of your Bazel ruleset to the [Bazel Cen
 * [Including patches](#including-patches)
 * [Attestations](#attestations)
 * [Immutable releases](#immutable-releases)
-* [LEGACY GitHub app](#legacy-github-app)
 
 ## Prerequisites
 
@@ -173,3 +172,4 @@ The workflow will _not_ finalize the release—it must be published manually or 
 ```
 
 The publish workflow downloads artifacts produced by the reusable release workflow by default. If the release and publish jobs do _not_ run in the same workflow run, set `release_artifacts_run_id` to the ID of the run where the release ran (see workflow [docs](./.github/workflows/publish.yaml)).
+
