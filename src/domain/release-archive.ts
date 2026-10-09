@@ -53,7 +53,9 @@ export class ReleaseArchive {
     '.zip',
     '.tar',
     '.tar.gz',
+    '.tgz',
     '.tar.xz',
+    '.txz',
     '.tar.zst',
   ];
   public static async fetch(
@@ -118,7 +120,13 @@ export class ReleaseArchive {
     if (this.artifact.diskPath.endsWith('.tar.gz')) {
       return true;
     }
+    if (this.artifact.diskPath.endsWith('.tgz')) {
+      return true;
+    }
     if (this.artifact.diskPath.endsWith('.tar.xz')) {
+      return true;
+    }
+    if (this.artifact.diskPath.endsWith('.txz')) {
       return true;
     }
     if (this.artifact.diskPath.endsWith('.tar.zst')) {
@@ -128,7 +136,10 @@ export class ReleaseArchive {
   }
 
   private async extractReleaseTarball(extractDir: string): Promise<void> {
-    if (this.artifact.diskPath.endsWith('.tar.xz')) {
+    if (
+      this.artifact.diskPath.endsWith('.tar.xz') ||
+      this.artifact.diskPath.endsWith('.txz')
+    ) {
       const reader = fs.createReadStream(this.artifact.diskPath);
       const writer = tar.x({
         cwd: extractDir,

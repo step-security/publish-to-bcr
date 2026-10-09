@@ -22,5 +22,9 @@ format_multirun(
     name = "format",
     javascript = ":prettier",
     starlark = "@buildifier_prebuilt//:buildifier",
+<<<<<<< ae8c2aa3c7796be4edda759cdb9cce567995b04f
     terraform = "@aspect_rules_lint//format:terraform",
+=======
+    yaml = "@aspect_rules_lint//format:yamlfmt",
+>>>>>>> 40484342f048a6a428181eb42dc8dd323ff4ae6a
 )
