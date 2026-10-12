@@ -1,0 +1,6 @@
+pnpm-lock.yaml linguist-generated
+dist/cli/index.js linguist-generated
+dist/action/index.js linguist-generated
+.github/workflows/publish.yaml rules-lint-ignored
+.github/workflows/codeql.yml rules-lint-ignored
+.github/** rules-lint-ignored

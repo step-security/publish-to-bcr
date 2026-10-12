@@ -4,10 +4,17 @@
   "publisher": "step-security",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "bazel build //...",
+    "sync-dist": "bazel build //dist/cli:cli.patch //dist/action:action.patch && patch -p0 < bazel-bin/dist/cli/cli.patch; patch -p0 < bazel-bin/dist/action/action.patch; bazel build //...",
+    "test": "bazel test //src/...",
+    "e2e": "bazel test //e2e:test",
+    "//gcp-build": "Don't run any build steps on cloud run. See https://cloud.google.com/functions/docs/concepts/nodejs-runtime#npm_build_script/",
+    "gcp-build": ""
+  },
   "engines": {
     "node": ">=24",
-    "pnpm": "^11",
-    "npm": ">=11"
+    "pnpm": "^11"
   },
   "dependencies": {
     "@actions/attest": "^3.0.0",
