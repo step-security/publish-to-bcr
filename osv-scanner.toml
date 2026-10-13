@@ -1,15 +1,7 @@
 [[IgnoredVulns]]
 id = "GHSA-jfc7-64v2-mr8c"
-reason = "Transitive via @actions/attest -> @sigstore/sign -> @sigstore/core 2.0.0. The DSSE payloadType type-binding issue requires post-signing mutation of attestation bundles; GitHub's attestation store is append-only. No upstream fix is available yet: @actions/attest latest (3.2.0) still pins @sigstore/sign ^3.1.0."
+reason = "@sigstore/core 2.0.0 via @actions/attest -> @sigstore/sign (latest @actions/attest pins ^3). The action only signs attestations and never verifies them, so the flawed payloadType binding is not relied on."
 
 [[IgnoredVulns]]
-id = "GHSA-5v7r-6r5c-r473"
-reason = "Transitive via @nestjs/common -> file-type 20.4.1. The ASF/WMV/WMA infinite-loop DoS requires parsing a crafted ASF file via file-type; this codebase does not expose file-type detection to untrusted input."
-
-[[IgnoredVulns]]
-id = "GHSA-j47w-4g3g-c36v"
-reason = "Transitive via @nestjs/common -> file-type 20.4.1. The ZIP decompression bomb requires calling fileTypeFromBuffer/Blob/File on a crafted ZIP; this codebase does not expose file-type detection to untrusted input."
-
-[[IgnoredVulns]]
-id = "GHSA-w5hq-g745-h8pq"
-reason = "Transitive via @google-cloud/functions-framework -> cloudevents -> uuid 8.3.2 and @google-cloud/secret-manager -> google-gax -> gaxios -> uuid 9.0.1. The missing bounds check only affects uuid v3/v5/v6 APIs when a caller-supplied output buffer is passed; cloudevents and gaxios only call uuid.v4() with no external buffer."
+id = "GHSA-hp3w-g68c-fv3c"
+reason = "sprintf-js is a dev dependency and is not used at runtime"
