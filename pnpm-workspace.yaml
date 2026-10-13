@@ -29,7 +29,7 @@ packageExtensions:
 onlyBuiltDependencies: []
 allowBuilds:
   '@nestjs/core': false
-  '@parcel/watcher': set this to true or false
+  '@parcel/watcher': false
   fast-folder-size: false
   protobufjs: false
-  unrs-resolver: set this to true or false
+  unrs-resolver: false

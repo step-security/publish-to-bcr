@@ -3,9 +3,12 @@ import os from 'node:os';
 import path from 'node:path';
 import stream from 'node:stream';
 
-import extractZip from 'extract-zip';
 import * as tar from 'tar';
 
+import {
+  extractZipEntry,
+  ZipEntryNotRegularFileError,
+} from '../infrastructure/unzip.js';
 import { decompress as decompressXz } from '../infrastructure/xzdec/xzdec.js';
 import { decompress as decompressZst } from '../infrastructure/zstdec/zstdec.js';
 import {
@@ -44,6 +47,14 @@ export class MissingModuleFileError extends UserFacingError {
   constructor(pathInArchive: string, stripPrefix: string) {
     super(
       `Could not find MODULE.bazel in release archive at ${pathInArchive}.\nIs the strip prefix in source.template.json correct? (currently it's '${stripPrefix}')`
+    );
+  }
+}
+
+export class UnsafeArchiveEntryError extends UserFacingError {
+  constructor(pathInArchive: string) {
+    super(
+      `${pathInArchive} in the release archive is not a regular file (symlinks are not supported).`
     );
   }
 }
@@ -173,8 +184,29 @@ export class ReleaseArchive {
     });
   }
 
+  /**
+   * Only MODULE.bazel is needed from the archive, so extract just that entry
+   * rather than the whole archive.
+   */
   private async extractReleaseZip(extractDir: string): Promise<void> {
-    await extractZip(this.artifact.diskPath, { dir: extractDir });
+    const pathInArchive = path.join(this.stripPrefix, 'MODULE.bazel');
+    const dest = path.resolve(extractDir, pathInArchive);
+    if (!dest.startsWith(path.resolve(extractDir) + path.sep)) {
+      throw new MissingModuleFileError(`./${pathInArchive}`, this.stripPrefix);
+    }
+
+    try {
+      await extractZipEntry(
+        this.artifact.diskPath,
+        pathInArchive.split(path.sep).join(path.posix.sep),
+        dest
+      );
+    } catch (e) {
+      if (e instanceof ZipEntryNotRegularFileError) {
+        throw new UnsafeArchiveEntryError(`./${pathInArchive}`);
+      }
+      throw e;
+    }
   }
 
   /**

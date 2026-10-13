@@ -7,6 +7,10 @@ import { parse as parseUrl } from 'node:url';
 import { mocked } from 'jest-mock';
 import * as tar from 'tar';
 
+import {
+  extractZipEntry,
+  ZipEntryNotRegularFileError,
+} from '../infrastructure/unzip';
 import { decompress as decompressXz } from '../infrastructure/xzdec/xzdec';
 import { decompress as decompressZst } from '../infrastructure/zstdec/zstdec';
 import { fakeModuleFile } from '../test/mock-template-files';
@@ -16,13 +20,14 @@ import {
   ArchiveDownloadError,
   MissingModuleFileError,
   ReleaseArchive,
+  UnsafeArchiveEntryError,
   UnsupportedArchiveFormat,
 } from './release-archive';
 
 jest.mock('node:fs');
 jest.mock('node:os');
 jest.mock('tar');
-jest.mock('extract-zip');
+jest.mock('../infrastructure/unzip');
 jest.mock('../infrastructure/xzdec/xzdec', () => ({
   decompress: jest.fn().mockResolvedValue(undefined),
 }));
@@ -202,6 +207,50 @@ describe('extractModuleFile', () => {
       cwd: path.join(TEMP_DIR, EXTRACT_FOLDER),
     });
     expect(decompressXz).toHaveBeenCalled();
+  });
+
+  test('extracts only MODULE.bazel from a .zip archive', async () => {
+    const releaseArchive = await ReleaseArchive.fetch(
+      'https://foo.bar/rules-foo-v1.2.3.zip',
+      STRIP_PREFIX,
+      options
+    );
+    await releaseArchive.extractModuleFile();
+
+    expect(extractZipEntry).toHaveBeenCalledWith(
+      releaseArchive.artifact.diskPath,
+      'rules-foo/MODULE.bazel',
+      path.join(TEMP_DIR, EXTRACT_FOLDER, STRIP_PREFIX, 'MODULE.bazel')
+    );
+  });
+
+  test('complains when the MODULE.bazel in a .zip archive is a symlink', async () => {
+    mocked(extractZipEntry).mockRejectedValueOnce(
+      new ZipEntryNotRegularFileError('rules-foo/MODULE.bazel')
+    );
+
+    const releaseArchive = await ReleaseArchive.fetch(
+      'https://foo.bar/rules-foo-v1.2.3.zip',
+      STRIP_PREFIX,
+      options
+    );
+
+    await expect(releaseArchive.extractModuleFile()).rejects.toThrow(
+      UnsafeArchiveEntryError
+    );
+  });
+
+  test('refuses a strip prefix that escapes the extraction directory for a .zip archive', async () => {
+    const releaseArchive = await ReleaseArchive.fetch(
+      'https://foo.bar/rules-foo-v1.2.3.zip',
+      '../..',
+      options
+    );
+
+    await expect(releaseArchive.extractModuleFile()).rejects.toThrow(
+      MissingModuleFileError
+    );
+    expect(extractZipEntry).not.toHaveBeenCalled();
   });
 
   test('loads the extracted MODULE.bazel file', async () => {

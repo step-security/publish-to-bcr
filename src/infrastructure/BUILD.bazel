@@ -1,3 +1,4 @@
+load("//bazel/jest:defs.bzl", "jest_test")
 load("//bazel/ts:defs.bzl", "ts_project")
 
 ts_project(
@@ -5,6 +6,7 @@ ts_project(
     srcs = [
         "git.ts",
         "github.ts",
+        "unzip.ts",
     ],
     allow_js = True,
     source_map = True,
@@ -20,6 +22,31 @@ ts_project(
         "//:node_modules/@octokit/rest",
         "//:node_modules/@octokit/types",
         "//:node_modules/@types/node",  # keep
+        "//:node_modules/@types/yauzl",
         "//:node_modules/simple-git",
+        "//:node_modules/yauzl",
+    ],
+)
+
+ts_project(
+    name = "infrastructure_tests",
+    testonly = True,
+    srcs = [
+        "unzip.spec.ts",
+    ],
+    allow_js = True,
+    source_map = True,
+    tsconfig = "//:tsconfig",
+    deps = [
+        ":infrastructure",
+        "//:node_modules/@types/jest",  # keep
+        "//:node_modules/@types/node",
+    ],
+)
+
+jest_test(
+    name = "test",
+    data = [
+        ":infrastructure_tests",
     ],
 )

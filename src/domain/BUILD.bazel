@@ -33,7 +33,6 @@ ts_project(
         "//:node_modules/axios",
         "//:node_modules/axios-retry",
         "//:node_modules/diff",
-        "//:node_modules/extract-zip",
         "//:node_modules/tar",
         "//:node_modules/ts-results-es",
         "//:node_modules/yaml",
