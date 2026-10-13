@@ -1,4 +1,5 @@
 name: 'Publish to BCR'
+author: step-security
 description: 'Create a new module version entry in a Bazel registry'
 inputs:
   attest:
@@ -51,7 +52,7 @@ inputs:
     required: false
     default: ''
   templates-dir:
-    description: 'Directory containing BCR release template files: metadata.template.json, source.template.json, presubmit.yaml, patches/. Equivalent to the .bcr directory required by the legacy GitHub app.'
+    description: 'Directory containing BCR release template files: metadata.template.json, source.template.json, presubmit.yaml, patches/.'
     required: false
     default: ''
 outputs:
