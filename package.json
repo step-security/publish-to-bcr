@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@actions/attest": "^3.0.0",
-    "@actions/core": "^2.0.1",
+    "@actions/core": "^3.0.1",
     "@actions/exec": "^2.0.0",
     "@nestjs/common": "^10.3.9",
     "@nestjs/core": "^10.3.9",
