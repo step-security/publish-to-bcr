@@ -5,8 +5,8 @@
   "action_type": "node",
   "upstream": {
     "repository": "bazel-contrib/publish-to-bcr",
-    "synced_tag": "v1.5.1",
-    "synced_commit": "fa5bb3803983c621c90721669ee7857afe139836",
+    "synced_tag": "v1.7.0",
+    "synced_commit": "1ae09341a6014e9bea052879c42392ac6b8b632c",
     "archived": false
   },
   "build": {
