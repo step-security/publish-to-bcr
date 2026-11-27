@@ -513,13 +513,8 @@
     },
     "@@aspect_rules_js+//npm:extensions.bzl%pnpm": {
       "general": {
-<<<<<<< eb5989ee0a676d33bb174159adc4e06dbceb2e37
-        "bzlTransitiveDigest": "TvgL4Kye6U+XuLmBeLeYU5Zr9nh/1xqbKHvQsl+NZNg=",
-        "usagesDigest": "uDntF8b2WARm7meMO1Bi1l7o547dpXAnelRU/X+o3JU=",
-=======
         "bzlTransitiveDigest": "qfuV/6GkcPw4BHYanzfmL7bilqoZsm7hTjtjlprxa0k=",
         "usagesDigest": "OwhD8fxXvIym0FMoUvBGsQFHQqAB3MGYSoGXgl5ZOsk=",
->>>>>>> e2cc3b8d92147c4b079668cc4217bd270a18e603
         "recordedInputs": [
           "REPO_MAPPING:aspect_bazel_lib+,bazel_lib bazel_lib+",
           "REPO_MAPPING:aspect_bazel_lib+,bazel_skylib bazel_skylib+",
@@ -600,11 +595,7 @@
         "recordedInputs": [
           "REPO_MAPPING:aspect_rules_ts+,aspect_rules_ts aspect_rules_ts+",
           "REPO_MAPPING:aspect_rules_ts+,bazel_tools bazel_tools",
-<<<<<<< eb5989ee0a676d33bb174159adc4e06dbceb2e37
-          "FILE:@@//package.json 9983fa11149eeba17e2ced12a5aafc00ca3120c69ac3a4467030b651660a509c"
-=======
-          "FILE:@@//package.json 7689e3dc9f5d693ccd193df569d371d4cd14cd490e0af8a11b7a6f984956b4ff"
->>>>>>> e2cc3b8d92147c4b079668cc4217bd270a18e603
+          "FILE:@@//package.json 3f1c49df8110de1cc20510096e3ff727cd9722a15d686bda2aa23f8675446d5d"
         ],
         "generatedRepoSpecs": {
           "npm_typescript": {
@@ -1074,11 +1065,7 @@
     },
     "@@rules_rust+//crate_universe/private:internal_extensions.bzl%cu_nr": {
       "general": {
-<<<<<<< eb5989ee0a676d33bb174159adc4e06dbceb2e37
-        "bzlTransitiveDigest": "MEeEWDImsRlWXxn6hC7+nBKNrfeEtzpcjfNdt6VXTVo=",
-=======
         "bzlTransitiveDigest": "KrZBXh72LeVpmaIJXq/Au/VMtzC7hXq1eLk3hJH/5F8=",
->>>>>>> e2cc3b8d92147c4b079668cc4217bd270a18e603
         "usagesDigest": "dQ7SQZ7uSSL3vVKSMBKRxKJUm9OVrZZA+S1/QQfT570=",
         "recordedInputs": [
           "REPO_MAPPING:bazel_features+,bazel_features_globals bazel_features++version_extension+bazel_features_globals",
