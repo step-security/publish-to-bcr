@@ -1,3 +1,6 @@
+# Add an explicit dependency on @ape to work around a hosting outage for files
+# downloaded by the transitively resolved version (1.0.1).
+bazel_dep(name = "ape", version = "1.1.1-alpha.1")
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 bazel_dep(name = "aspect_gazelle_prebuilt", version = "0.0.18")
 bazel_dep(name = "aspect_rules_esbuild", version = "0.25.0")
@@ -12,9 +15,9 @@ bazel_dep(
     name = "buildifier_prebuilt",
     version = "8.5.1.4",
 )
-bazel_dep(name = "diff.bzl", version = "0.5.8")
+bazel_dep(name = "diff.bzl", version = "0.6.1")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.22")
+bazel_dep(name = "rules_cc", version = "0.2.27")
 bazel_dep(name = "rules_go", version = "0.59.0")
 bazel_dep(name = "rules_multitool", version = "1.11.1")
 bazel_dep(name = "rules_nodejs", version = "6.7.4")

@@ -24,7 +24,7 @@
     "@nestjs/core": "^11.1.29",
     "@octokit/rest": "^20.1.2",
     "@octokit/types": "^13.10.0",
-    "axios": "^1.20.0",
+    "axios": "^1.21.1",
     "axios-retry": "^4.5.0",
     "chalk": "^4.1.2",
     "diff": "^5.2.2",
